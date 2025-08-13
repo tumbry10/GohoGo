@@ -1,0 +1,54 @@
+<h1>Order for {{ window.zone.name }} - {{ window.delivery_date }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <h2>Customer Info</h2>
+    {{ customer_form.as_p }}
+
+    <h2>Items</h2>
+    <div id="order-items">
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="order-item-form">
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" id="add-item-btn">+ Add Another Product</button><br>
+    <button type="submit">Place Order</button>
+</form>
+
+<!--JS for adding new item forms-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let addItemBtn = document.getElementById('add-item-btn');
+        let orderItemsDiv = document.getElementById('order-items');
+
+        // Get management form TOTAL_FORMS input
+        let totalFormsInput = document.getElementById('id_orderitem_set-TOTAL_FORMS');
+
+        addItemBtn.addEventListener('click', function () {
+            let currentFormCount = parseInt(totalFormsInput.value);
+
+            // Clone the first form (template)
+            let newFormHtml = orderItemsDiv.querySelector('.order-item-form').cloneNode(true);
+
+            // Update input/select names and ids
+            newFormHtml.querySelectorAll('input, select, textarea').forEach(function (input) {
+                if (input.name) {
+                    input.name = input.name.replace(/-\d+-/, `-${currentFormCount}-`);
+                    input.id = input.id.replace(/-\d+-/, `-${currentFormCount}-`);
+                    if (input.tagName.toLowerCase() === 'input') {
+                        input.value = ''; // clear previous value
+                    }
+                }
+            });
+
+            orderItemsDiv.appendChild(newFormHtml);
+
+            // Increment TOTAL_FORMS
+            totalFormsInput.value = currentFormCount + 1;
+        });
+    });
+</script>
